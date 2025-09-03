@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js"
 const RAPIDAPI_KEY: string | undefined = process.env.RAPIDAPI_KEY
 const GEMINI_API_KEY: string | undefined = process.env.GEMINI_API_KEY
 const SUPABASE_URL: string | undefined = process.env.PROJECT_URL
-const SUPABASE_ANON_KEY: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SUPABASE_ANON_KEY: string | undefined = process.env.SUPABASE_ANON_KEY
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
