@@ -76,7 +76,7 @@ async function generateSummary(transcript: string): Promise<string> {
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
-  const prompt = `Предоставь краткое изложение следующей транскрипции видео с YouTube:\n\n${transcript}`
+  const prompt = `Предоставь краткое изложение следующей транскрипции видео с YouTube, разбивая его на логические абзацы:\n\n${transcript}`
   const result = await model.generateContent(prompt)
   const response = await result.response
   const text = response.text()

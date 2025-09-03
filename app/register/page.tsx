@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, UserPlus, Mail, Lock, Phone, CheckCircle, AlertCircle } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -68,20 +71,40 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    const userData = {
+      full_name: name,
+      phone_number: phone,
+    }
+    console.log("Sending user data to Supabase:", userData)
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData,
+      },
+    })
+
     setLoading(false)
+    console.log("Supabase signUp response data:", data)
+    console.log("Supabase signUp error:", signUpError)
 
-    // In a real application, you would send this data to your backend
-    console.log({ name, email, password, phone })
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
 
-    setSuccess("Регистрация прошла успешно! Добро пожаловать.")
-    setName("")
-    setEmail("")
-    setPassword("")
-    setPhone("")
-    setAgreeOfferTerms(false)
-    setAgreePrivacyPolicy(false)
+    if (data.user) {
+      setSuccess("Регистрация прошла успешно! Проверьте свою почту для подтверждения.")
+      setName("")
+      setEmail("")
+      setPassword("")
+      setPhone("")
+      setAgreeOfferTerms(false)
+      setAgreePrivacyPolicy(false)
+      router.push("/login") // Redirect to login page after successful registration
+    }
   }
 
   return (

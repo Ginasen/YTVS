@@ -8,8 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock, LogIn, UserPlus, AlertCircle, CheckCircle } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -27,21 +30,27 @@ export default function LoginPage() {
     }
 
     setLoading(true)
-    // Simulate API call for login
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
     setLoading(false)
 
-    // In a real application, you would verify credentials with your backend
-    // For demonstration, let's assume a successful login for any input
-    // and store a dummy user session in local storage.
-    localStorage.setItem("userEmail", email)
-    localStorage.setItem("generationCount", "0") // Reset generation count on login
+    if (signInError) {
+      setError(signInError.message)
+      return
+    }
 
-    setSuccess("Вход выполнен успешно! Добро пожаловать.")
-    setEmail("")
-    setPassword("")
-    // Redirect to main page or dashboard after successful login
-    // window.location.href = "/"
+    if (data.user) {
+      localStorage.setItem("userEmail", email)
+      localStorage.setItem("generationCount", "0") // Reset generation count on login
+      setSuccess("Вход выполнен успешно! Добро пожаловать.")
+      setEmail("")
+      setPassword("")
+      router.push("/") // Redirect to main page after successful login
+    }
   }
 
   return (
