@@ -1,12 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server"
 import axios, { AxiosResponse } from "axios"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { createClient } from "@supabase/supabase-js"
 
 const RAPIDAPI_KEY: string | undefined = process.env.RAPIDAPI_KEY
 const GEMINI_API_KEY: string | undefined = process.env.GEMINI_API_KEY
+const SUPABASE_URL: string | undefined = process.env.PROJECT_URL
+const SUPABASE_ANON_KEY: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error("Missing Supabase URL or Anon Key environment variables.")
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
+
+    if (sessionError || !session) {
+      return NextResponse.json({ error: "Неавторизованный доступ" }, { status: 401 })
+    }
+
     const { url } = await request.json()
 
     // Validate YouTube URL

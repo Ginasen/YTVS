@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
 import { type NextRequest, NextResponse } from "next/server"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseUrl = process.env.PROJECT_URL
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
@@ -13,10 +13,18 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
     autoRefreshToken: false,
     persistSession: false,
   },
+  global: {
+    headers: {
+      Authorization: `Bearer ${supabaseServiceRoleKey}`,
+    },
+  },
 })
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    console.log("Supabase URL (from env):", supabaseUrl ? "Loaded" : "Missing")
+    console.log("Supabase Service Role Key (from env):", supabaseServiceRoleKey ? "Loaded" : "Missing")
+
     const { userId } = await request.json()
 
     if (!userId) {
@@ -28,7 +36,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (authError) {
       console.error("Error deleting user from auth.users:", authError)
-      return NextResponse.json({ error: authError.message }, { status: 500 })
+      console.error("Supabase Auth Error Details:", JSON.stringify(authError, null, 2))
+      return NextResponse.json({ error: authError.message, details: authError }, { status: 500 })
     }
 
     // The trigger 'on_auth_user_created' should handle cascading delete to 'profiles' table
