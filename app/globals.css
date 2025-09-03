@@ -180,7 +180,11 @@
 }
 
 .neon-text {
-  text-shadow: 0 0 3px oklch(0.6 0.15 280), 0 0 6px oklch(0.6 0.15 280), 0 0 9px oklch(0.55 0.18 200);
+  /* Adjusted for a brighter, more readable white glow with subtle purple/teal hints */
+  text-shadow: 0 0 5px oklch(0.95 0.01 280 / 0.8), /* Brighter white base glow */
+               0 0 10px oklch(0.95 0.01 280 / 0.6), /* Stronger white glow */
+               0 0 15px oklch(0.6 0.15 280 / 0.4), /* Subtle primary color hint */
+               0 0 20px oklch(0.55 0.18 200 / 0.3); /* Subtle secondary color hint */
 }
 
 .electric-border {

@@ -1,21 +1,42 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import Link from "next/link"
+import { useState, useEffect } from "react" // Import useEffect
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Youtube, Sparkles, CheckCircle, AlertCircle, Zap, Stars } from "lucide-react"
+import { Loader2, Youtube, Sparkles, CheckCircle, AlertCircle, Zap, Stars, UserPlus, LogIn, LogOut } from "lucide-react" // Add LogIn and LogOut icons
 
 type LoadingState = "idle" | "extracting" | "summarizing" | "complete" | "error"
 
 export default function YouTubeSummarizer() {
   const [url, setUrl] = useState("")
-  const [summary, setSummary] = useState("")
+  const [summary, setSummary] = useState<React.ReactNode>(null) // Change type to React.ReactNode
   const [loadingState, setLoadingState] = useState<LoadingState>("idle")
   const [error, setError] = useState("")
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [generationCount, setGenerationCount] = useState(0)
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail")
+    const storedGenerationCount = localStorage.getItem("generationCount")
+
+    if (storedEmail) {
+      setUserEmail(storedEmail)
+      setGenerationCount(Number(storedGenerationCount) || 0)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("userEmail")
+    localStorage.removeItem("generationCount")
+    setUserEmail(null)
+    setGenerationCount(0)
+    setSummary("") // Clear summary on logout
+    setError("") // Clear any errors
+  }
 
   const isValidYouTubeUrl = (url: string) => {
     const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/
@@ -39,6 +60,15 @@ export default function YouTubeSummarizer() {
     setSummary("")
     setLoadingState("extracting")
 
+    const isUnlimitedUser = userEmail === "i@ginasen.ru"
+    const hasReachedLimit = userEmail && generationCount >= 5 && !isUnlimitedUser
+
+    if (hasReachedLimit) {
+      setError("Вы достигли лимита в 5 генераций. Пожалуйста, войдите в систему или зарегистрируйтесь для получения большего количества генераций.")
+      setLoadingState("idle")
+      return
+    }
+
     try {
       const response = await fetch("/api/summarize", {
         method: "POST",
@@ -56,12 +86,27 @@ export default function YouTubeSummarizer() {
       }
 
       const data = await response.json()
-      setSummary(data.summary)
+      setSummary(formatSummary(data.summary)) // Format the summary
       setLoadingState("complete")
+
+      if (userEmail && !isUnlimitedUser) {
+        const newGenerationCount = generationCount + 1
+        setGenerationCount(newGenerationCount)
+        localStorage.setItem("generationCount", String(newGenerationCount))
+      }
     } catch (err: any) {
       setError("Произошла ошибка при обработке видео. Попробуйте позже.")
       setLoadingState("error")
     }
+  }
+
+  const formatSummary = (text: string) => {
+    // Split by double newlines to create paragraphs
+    return text.split(/\n\s*\n/).map((paragraph, index) => (
+      <p key={index} className="mb-4 last:mb-0">
+        {paragraph}
+      </p>
+    ))
   }
 
   const getLoadingMessage = () => {
@@ -104,17 +149,43 @@ export default function YouTubeSummarizer() {
             <Zap className="h-8 w-8 text-accent animate-bounce" />
             <Stars className="h-10 w-10 text-secondary animate-pulse" />
           </div>
-          <h1 className="text-6xl font-bold neon-text mb-4 text-balance bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          <h1 className="text-6xl font-bold neon-text mb-4 text-balance bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent">
             YouTube Video Summarizer
           </h1>
-          <p className="text-xl text-foreground/80 text-pretty font-medium">
+          <p className="text-xl text-foreground/80 text-pretty font-medium mb-6">
             🚀 Получите краткое изложение любого YouTube видео с помощью ИИ ✨
           </p>
+          <div className="flex justify-center gap-4 mb-8">
+            {userEmail ? (
+              <Button
+                onClick={handleLogout}
+                className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+              >
+                <LogOut className="h-5 w-5 mr-2" />
+                Выйти ({userEmail})
+              </Button>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-cyan-500 hover:to-blue-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
+                    <LogIn className="h-5 w-5 mr-2" />
+                    Войти
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
+                    <UserPlus className="h-5 w-5 mr-2" />
+                    Зарегистрироваться
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
 
         <Card className="mb-8 glow-card electric-border bg-card/70 backdrop-blur-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-2xl neon-text">
+            <CardTitle className="flex items-center gap-3 text-2xl neon-text bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent">
               <Youtube className="h-6 w-6 text-primary" />
               Введите URL видео
               <Sparkles className="h-5 w-5 text-accent animate-pulse" />
@@ -136,7 +207,11 @@ export default function YouTubeSummarizer() {
                 />
                 <Button
                   type="submit"
-                  disabled={loadingState === "extracting" || loadingState === "summarizing"}
+                  disabled={
+                    loadingState === "extracting" ||
+                    loadingState === "summarizing" ||
+                    (!!userEmail && generationCount >= 5 && userEmail !== "i@ginasen.ru") // Ensure boolean
+                  }
                   className="px-8 py-6 text-lg font-bold bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-accent transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
                 >
                   {loadingState === "extracting" || loadingState === "summarizing" ? (
@@ -152,6 +227,15 @@ export default function YouTubeSummarizer() {
                   )}
                 </Button>
               </div>
+
+              {userEmail && userEmail !== "i@ginasen.ru" && (
+                <Alert variant="default" className="glow-card border-blue-500/30 bg-blue-500/5 backdrop-blur-sm text-blue-400">
+                  <AlertCircle className="h-5 w-5" />
+                  <AlertDescription className="text-lg">
+                    Вы использовали {generationCount} из 5 генераций.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {error && (
                 <Alert
@@ -190,15 +274,15 @@ export default function YouTubeSummarizer() {
         {loadingState === "complete" && summary && (
           <Card className="glow-card bg-card/70 backdrop-blur-md electric-border floating-element">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-2xl neon-text text-primary">
+              <CardTitle className="flex items-center gap-3 text-2xl neon-text bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent">
                 <CheckCircle className="h-7 w-7 animate-pulse" />
                 Краткое изложение готово!
                 <Stars className="h-6 w-6 text-accent animate-pulse" />
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-lg max-w-none">
-                <p className="text-foreground/90 leading-relaxed text-lg font-medium">{summary}</p>
+              <div className="prose prose-lg max-w-none text-foreground/90 leading-relaxed text-lg font-medium">
+                {summary}
               </div>
             </CardContent>
           </Card>
