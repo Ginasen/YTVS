@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("")
   const [agreeOfferTerms, setAgreeOfferTerms] = useState(false)
   const [agreePrivacyPolicy, setAgreePrivacyPolicy] = useState(false)
+  const [agreePersonalDataPolicy, setAgreePersonalDataPolicy] = useState(false) // New state for personal data policy
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -70,27 +71,51 @@ export default function RegisterPage() {
       return
     }
 
+    if (!agreePersonalDataPolicy) { // New validation for personal data policy
+      setError("Вы должны согласиться с политикой персональных данных.")
+      return
+    }
+
     setLoading(true)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: name,
-          phone_number: String(phone), // Ensure phone is explicitly a string
+          phone_number: String(phone),
         },
       },
     })
 
-    setLoading(false)
-
     if (signUpError) {
+      setLoading(false)
       setError(signUpError.message)
       return
     }
 
-    if (data.user) {
+    if (authData.user) {
+      // Insert into profiles table after successful auth.users creation
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            id: authData.user.id,
+            full_name: name,
+            phone_number: String(phone),
+          },
+        ])
+
+      if (profileError) {
+        setLoading(false)
+        setError(profileError.message)
+        // Optionally, you might want to delete the user from auth.users if profile creation fails
+        // await supabase.auth.admin.deleteUser(authData.user.id);
+        return
+      }
+
+      setLoading(false)
       setSuccess("Регистрация прошла успешно! Проверьте свою почту для подтверждения.")
       setName("")
       setEmail("")
@@ -98,7 +123,11 @@ export default function RegisterPage() {
       setPhone("")
       setAgreeOfferTerms(false)
       setAgreePrivacyPolicy(false)
+      setAgreePersonalDataPolicy(false) // Reset new checkbox state
       router.push("/login") // Redirect to login page after successful registration
+    } else {
+      setLoading(false)
+      setError("Не удалось зарегистрировать пользователя.")
     }
   }
 
@@ -207,6 +236,20 @@ export default function RegisterPage() {
               />
               <Label htmlFor="privacy-policy" className="text-sm text-foreground/80">
                 С <a href="#" className="text-primary hover:underline">политикой конфиденциальности</a> ознакомлен/-а
+              </Label>
+            </div>
+
+            {/* New checkbox for personal data policy */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="personal-data-policy"
+                checked={agreePersonalDataPolicy}
+                onCheckedChange={(checked) => setAgreePersonalDataPolicy(checked as boolean)}
+                disabled={loading}
+                className="border-primary/40 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+              />
+              <Label htmlFor="personal-data-policy" className="text-sm text-foreground/80">
+                С <a href="#" className="text-primary hover:underline">политикой персональных данных</a> согласен/-а
               </Label>
             </div>
 

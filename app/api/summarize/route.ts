@@ -64,6 +64,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ summary: summary })
   } catch (error: any) {
     console.error("[v0] Ошибка при создании краткого изложения:", error)
+    if (error.status === 503) {
+      return NextResponse.json(
+        { error: "Сервис суммаризации временно недоступен. Пожалуйста, попробуйте позже." },
+        { status: 503 }
+      )
+    }
     return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 })
   }
 }
