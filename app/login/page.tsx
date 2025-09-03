@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock, LogIn, UserPlus, AlertCircle, CheckCircle } from "lucide-react"
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,7 +43,7 @@ export default function LoginPage() {
     setEmail("")
     setPassword("")
     // Redirect to main page or dashboard after successful login
-    // window.location.href = "/"
+    router.push("/");
   }
 
   return (
