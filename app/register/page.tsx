@@ -72,23 +72,18 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    const userData = {
-      full_name: name,
-      phone_number: phone,
-    }
-    console.log("Sending user data to Supabase:", userData)
-
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: userData,
+        data: {
+          full_name: name,
+          phone_number: String(phone), // Ensure phone is explicitly a string
+        },
       },
     })
 
     setLoading(false)
-    console.log("Supabase signUp response data:", data)
-    console.log("Supabase signUp error:", signUpError)
 
     if (signUpError) {
       setError(signUpError.message)
