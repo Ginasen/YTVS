@@ -36,20 +36,7 @@ async function testRegistration() {
 
   if (authData.user) {
     console.log('User created in auth.users:', authData.user.id);
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([{ id: authData.user.id, full_name: name, phone_number: phone }]);
-
-    if (profileError) {
-      console.error('Failed to create user profile:', profileError.message);
-      // Optionally, delete the user from auth.users if profile creation fails
-      // await supabase.auth.admin.deleteUser(authData.user.id);
-      return;
-    }
-
-    console.log('User profile created successfully.');
-    console.log('Registration test successful!');
+    console.log('Registration test successful! Profile should be created by a trigger.');
   } else {
     console.error('Registration failed: No user data returned.');
   }
