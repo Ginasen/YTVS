@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, UserPlus, Mail, Lock, Phone, CheckCircle, AlertCircle } from "lucide-react"
+import { Loader2, UserPlus, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react"
 import { createSupabaseClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
@@ -16,7 +16,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [phone, setPhone] = useState("")
   const [agreeOfferTerms, setAgreeOfferTerms] = useState(false)
   const [agreePrivacyPolicy, setAgreePrivacyPolicy] = useState(false)
   const [agreePersonalDataPolicy, setAgreePersonalDataPolicy] = useState(false) // New state for personal data policy
@@ -50,7 +49,7 @@ export default function RegisterPage() {
     setError("")
     setSuccess("")
 
-    if (!name.trim() || !email.trim() || !password.trim() || !phone.trim()) {
+    if (!name.trim() || !email.trim() || !password.trim()) {
       setError("Пожалуйста, заполните все поля.")
       return
     }
@@ -91,7 +90,6 @@ export default function RegisterPage() {
       options: {
         data: {
           full_name: name,
-          phone_number: String(phone),
         },
       },
     })
@@ -110,7 +108,6 @@ export default function RegisterPage() {
           {
             id: authData.user.id,
             full_name: name,
-            phone_number: String(phone),
           },
         ])
 
@@ -127,7 +124,6 @@ export default function RegisterPage() {
       setName("")
       setEmail("")
       setPassword("")
-      setPhone("")
       setAgreeOfferTerms(false)
       setAgreePrivacyPolicy(false)
       setAgreePersonalDataPolicy(false) // Reset new checkbox state
@@ -195,25 +191,9 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="•••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 text-lg py-6 bg-input/40 backdrop-blur-sm border border-primary/20 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Номер телефона</Label>
-              <div className="relative mt-1">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+7 (XXX) XXX-XX-XX"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
                   className="pl-10 text-lg py-6 bg-input/40 backdrop-blur-sm border border-primary/20 focus:border-primary/40 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                   disabled={loading}
                 />
