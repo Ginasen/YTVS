@@ -64,6 +64,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ summary: summary });
   } catch (error: any) {
     console.error("[v0] Ошибка при создании краткого изложения:", error);
+    
+    // Handle specific Gemini API errors
+    if (error.status === 429) {
+      return NextResponse.json(
+        { error: "Превышен лимит запросов к ИИ. Пожалуйста, попробуйте позже или используйте другой сервис." },
+        { status: 429 }
+      );
+    }
+    
+    // Handle other Gemini API errors
+    if (error.message && error.message.includes("GoogleGenerativeAI Error")) {
+      return NextResponse.json(
+        { error: "Ошибка сервиса ИИ. Пожалуйста, попробуйте позже." },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
   }
 }
