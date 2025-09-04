@@ -56,6 +56,12 @@ export default function YouTubeSummarizer() {
       return
     }
 
+    // Check if user is logged in
+    if (!userEmail) {
+      setError("Пожалуйста, зарегистрируйтесь или войдите в систему для генерации краткого изложения.")
+      return
+    }
+
     setError("")
     setSummary("")
     setLoadingState("extracting")

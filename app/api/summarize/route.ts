@@ -66,7 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error("[v0] Ошибка при создании краткого изложения:", error);
     
     // Handle specific Gemini API errors
-    if (error.status === 429) {
+    if (error.status === 429 || (error.message && error.message.includes("429"))) {
       return NextResponse.json(
         { error: "Превышен лимит запросов к ИИ. Пожалуйста, попробуйте позже или используйте другой сервис." },
         { status: 429 }
