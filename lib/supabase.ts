@@ -33,6 +33,19 @@ export const createSupabaseClient = (): SupabaseClient | null => {
 
     console.log("[SUPABASE-LIB] Creating client with URL:", supabaseUrl.substring(0, 50) + "...");
     const client = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Test the client connection
+    console.log("[SUPABASE-LIB] Testing client connectivity...");
+    client.auth.getUser().then(({ data, error }) => {
+      if (error) {
+        console.warn("[SUPABASE-LIB] Client connectivity test failed:", error.message);
+      } else {
+        console.log("[SUPABASE-LIB] Client connectivity test successful");
+      }
+    }).catch((testError) => {
+      console.warn("[SUPABASE-LIB] Client connectivity test error:", testError);
+    });
+    
     console.log("✅ Supabase client initialized successfully");
     return client;
   } catch (error: any) {
@@ -48,7 +61,10 @@ export const createSupabaseClient = (): SupabaseClient | null => {
 
 export const getSupabaseClient = (): SupabaseClient | null => {
   if (!supabaseInstance) {
+    console.log("[SUPABASE-LIB] Creating new singleton instance...");
     supabaseInstance = createSupabaseClient();
+  } else {
+    console.log("[SUPABASE-LIB] Reusing existing singleton instance...");
   }
   return supabaseInstance;
 };
