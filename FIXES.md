@@ -28,25 +28,13 @@ The registration is failing with "Ошибка инициализации кли
 
 ## Database Fix (Manual Step Required)
 
-Since the Supabase MCP server is in read-only mode, you need to manually run the following SQL to fix the database schema mismatch:
+Since the Supabase MCP server is in read-only mode, you need to manually run the following SQL to fix the trigger function and make it handle NULL values properly:
 
-### Option 1: Add Missing Column (Recommended)
-Run the SQL script `fix-profiles-table.sql` in your Supabase SQL editor:
-
-```sql
--- Add the phone_number column to the profiles table
-ALTER TABLE public.profiles 
-ADD COLUMN IF NOT EXISTS phone_number TEXT;
-
--- Optional: Add a comment to document the column
-COMMENT ON COLUMN public.profiles.phone_number IS 'User phone number (optional)';
-```
-
-### Option 2: Fix the Trigger Function (Alternative)
-If you prefer to modify the trigger function instead, you can update it to match the current table structure:
+### Updated Trigger Function (Recommended)
+Run the SQL script `update-trigger-function.sql` in your Supabase SQL editor:
 
 ```sql
--- Drop and recreate the trigger function without phone_number
+-- Drop and recreate the trigger function with improved logic
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -55,8 +43,13 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $function$
 begin
-  insert into public.profiles (id, full_name)
-  values (new.id, new.raw_user_meta_data->>'full_name');
+  -- Insert into profiles table with COALESCE to handle NULL values
+  insert into public.profiles (id, full_name, phone_number)
+  values (
+    new.id, 
+    COALESCE(new.raw_user_meta_data->>'full_name', ''),
+    new.raw_user_meta_data->>'phone_number'  -- This can be NULL
+  );
   return new;
 end;
 $function$;
@@ -66,6 +59,8 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 ```
+
+This updated function will properly handle cases where phone_number is not provided during registration.
 
 ## Testing
 
