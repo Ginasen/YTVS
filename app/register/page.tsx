@@ -103,33 +103,83 @@ export default function RegisterPage() {
     }
 
     if (authData.user) {
-      // Insert into profiles table after successful auth.users creation
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            id: authData.user.id,
-            full_name: name,
-          },
-        ])
+      try {
+        // First, let's check if the profiles table exists and what columns it has
+        console.log("[REGISTER] Checking profiles table structure...");
+        
+        // Insert into profiles table after successful auth.users creation
+        console.log("[REGISTER] About to insert profile for user:", {
+          userId: authData.user.id,
+          fullName: name
+        });
+        
+        const { error: profileError, data: profileData } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: authData.user.id,
+              full_name: name,
+            },
+          ])
+          .select();
 
-      if (profileError) {
-        setLoading(false)
-        setError(profileError.message)
-        // Optionally, you might want to delete the user from auth.users if profile creation fails
-        // await supabase.auth.admin.deleteUser(authData.user.id);
-        return
+        console.log("[REGISTER] Profile insert result:", { profileError, profileData });
+
+        if (profileError) {
+          console.error("[REGISTER] Profile creation error:", profileError);
+          console.error("[REGISTER] Error details:", {
+            code: profileError.code,
+            hint: profileError.hint,
+            details: profileError.details
+          });
+          
+          // Try to get more information about the profiles table
+          try {
+            const { data: tableInfo, error: tableError } = await supabase
+              .from("profiles")
+              .select("*")
+              .limit(1);
+            
+            console.log("[REGISTER] Profiles table info:", { tableInfo, tableError });
+          } catch (tableCheckError) {
+            console.error("[REGISTER] Error checking profiles table:", tableCheckError);
+          }
+          
+          setLoading(false);
+          let errorMessage = `Ошибка базы данных при сохранении профиля: ${profileError.message}`;
+          
+          // Provide more specific error messages based on common issues
+          if (profileError.code === '42P01') {
+            errorMessage = "Ошибка: Таблица 'profiles' не существует в базе данных. Пожалуйста, создайте таблицу 'profiles' в Supabase.";
+          } else if (profileError.code === '23503') {
+            errorMessage = "Ошибка: Нарушение внешнего ключа. Пользователь не найден в таблице auth.users.";
+          } else if (profileError.code === '23505') {
+            errorMessage = "Ошибка: Профиль для этого пользователя уже существует.";
+          } else if (profileError.message.includes('column') && profileError.message.includes('does not exist')) {
+            errorMessage = "Ошибка: Одна из колонок в таблице 'profiles' не существует или имеет другое имя.";
+          }
+          
+          setError(errorMessage);
+          // Optionally, you might want to delete the user from auth.users if profile creation fails
+          // await supabase.auth.admin.deleteUser(authData.user.id);
+          return;
+        }
+
+        setLoading(false);
+        setSuccess("Регистрация прошла успешно! Проверьте свою почту для подтверждения.");
+        setName("");
+        setEmail("");
+        setPassword("");
+        setAgreeOfferTerms(false);
+        setAgreePrivacyPolicy(false);
+        setAgreePersonalDataPolicy(false); // Reset new checkbox state
+        router.push("/login"); // Redirect to login page after successful registration
+      } catch (dbError: any) {
+        console.error("[REGISTER] Database error:", dbError);
+        setLoading(false);
+        setError(`Ошибка базы данных: ${dbError.message || 'Неизвестная ошибка базы данных'}`);
+        return;
       }
-
-      setLoading(false)
-      setSuccess("Регистрация прошла успешно! Проверьте свою почту для подтверждения.")
-      setName("")
-      setEmail("")
-      setPassword("")
-      setAgreeOfferTerms(false)
-      setAgreePrivacyPolicy(false)
-      setAgreePersonalDataPolicy(false) // Reset new checkbox state
-      router.push("/login") // Redirect to login page after successful registration
     } else {
       setLoading(false)
       setError("Не удалось зарегистрировать пользователя.")
