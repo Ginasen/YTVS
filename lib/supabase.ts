@@ -2,37 +2,24 @@ import { createClient } from "@supabase/supabase-js"
 
 // Function to create a Supabase client
 export const createSupabaseClient = () => {
-  // Try to get environment variables - check multiple sources
-  const supabaseUrl = typeof process !== 'undefined' 
-    ? process.env.NEXT_PUBLIC_SUPABASE_URL 
-    : (window as any).env?.NEXT_PUBLIC_SUPABASE_URL || null
-  
-  const supabaseAnonKey = typeof process !== 'undefined'
-    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    : (window as any).env?.NEXT_PUBLIC_SUPABASE_ANON_KEY || null
+  // Simple approach - just try to get the environment variables directly
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Fallback to direct access if needed
-  if ((!supabaseUrl || !supabaseAnonKey) && typeof window !== 'undefined') {
-    // In browser, try to access directly from process.env if available
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    }
-  }
-
+  // Basic validation
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("Missing Supabase URL or Anon Key environment variables.")
-    console.log("Available env vars:", {
-      url: typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : 'client-side',
-      key: typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY : 'client-side'
-    })
+    console.warn("⚠️ Missing Supabase environment variables:")
+    console.warn("NEXT_PUBLIC_SUPABASE_URL:", supabaseUrl ? "✅ Found" : "❌ Missing")
+    console.warn("NEXT_PUBLIC_SUPABASE_ANON_KEY:", supabaseAnonKey ? "✅ Found" : "❌ Missing")
     return null
   }
 
   try {
     const client = createClient(supabaseUrl, supabaseAnonKey)
+    console.log("✅ Supabase client initialized successfully")
     return client
   } catch (error) {
-    console.error("Failed to create Supabase client:", error)
+    console.error("❌ Failed to initialize Supabase client:", error)
     return null
   }
 }

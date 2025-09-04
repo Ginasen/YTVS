@@ -77,7 +77,9 @@ export default function RegisterPage() {
 
     setLoading(true)
 
+    console.log("[REGISTER] About to call createSupabaseClient...")
     const supabase = createSupabaseClient()
+    console.log("[REGISTER] createSupabaseClient returned:", supabase)
     if (!supabase) {
       setLoading(false)
       setError("Ошибка инициализации клиента Supabase.")
