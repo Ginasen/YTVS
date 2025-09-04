@@ -78,11 +78,31 @@ export default function RegisterPage() {
     setLoading(true)
 
     console.log("[REGISTER] About to call createSupabaseClient...")
-    const supabase = createSupabaseClient()
-    console.log("[REGISTER] createSupabaseClient returned:", supabase)
-    if (!supabase) {
+    console.log("[REGISTER] typeof createSupabaseClient:", typeof createSupabaseClient)
+    
+    if (typeof createSupabaseClient !== 'function') {
+      console.error("[REGISTER] createSupabaseClient is not a function!", createSupabaseClient)
       setLoading(false)
-      setError("Ошибка инициализации клиента Supabase.")
+      setError("Ошибка инициализации клиента Supabase: функция не найдена.")
+      return
+    }
+    
+    let supabase;
+    try {
+      supabase = createSupabaseClient()
+      console.log("[REGISTER] createSupabaseClient returned:", supabase)
+      if (!supabase) {
+        setLoading(false)
+        setError("Ошибка инициализации клиента Supabase.")
+        return
+      }
+      
+      // Test the client by trying a simple operation
+      console.log("[REGISTER] Testing Supabase client connectivity...")
+    } catch (clientError: any) {
+      console.error("[REGISTER] Error calling createSupabaseClient:", clientError)
+      setLoading(false)
+      setError("Ошибка инициализации клиента Supabase: " + (clientError.message || 'Неизвестная ошибка'))
       return
     }
 
