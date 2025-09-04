@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, UserPlus, Mail, Lock, CheckCircle, AlertCircle } from "lucide-react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { getSupabaseClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
@@ -77,11 +77,11 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    console.log("[REGISTER] About to call createSupabaseClient...")
-    console.log("[REGISTER] typeof createSupabaseClient:", typeof createSupabaseClient)
+    console.log("[REGISTER] About to call getSupabaseClient...")
+    console.log("[REGISTER] typeof getSupabaseClient:", typeof getSupabaseClient)
     
-    if (typeof createSupabaseClient !== 'function') {
-      console.error("[REGISTER] createSupabaseClient is not a function!", createSupabaseClient)
+    if (typeof getSupabaseClient !== 'function') {
+      console.error("[REGISTER] getSupabaseClient is not a function!", getSupabaseClient)
       setLoading(false)
       setError("Ошибка инициализации клиента Supabase: функция не найдена.")
       return
@@ -89,8 +89,8 @@ export default function RegisterPage() {
     
     let supabase;
     try {
-      supabase = createSupabaseClient()
-      console.log("[REGISTER] createSupabaseClient returned:", supabase)
+      supabase = getSupabaseClient()
+      console.log("[REGISTER] getSupabaseClient returned:", supabase)
       if (!supabase) {
         setLoading(false)
         setError("Ошибка инициализации клиента Supabase.")
