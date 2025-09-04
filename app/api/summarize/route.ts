@@ -5,14 +5,21 @@ import { createClient } from '@supabase/supabase-js'
 
 const RAPIDAPI_KEY: string | undefined = process.env.RAPIDAPI_KEY;
 const GEMINI_API_KEY: string | undefined = process.env.GEMINI_API_KEY;
-const SUPABASE_URL: string = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const SUPABASE_ANON_KEY: string = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const { url } = await request.json();
+
+    // Initialize Supabase client
+    const SUPABASE_URL: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_ANON_KEY: string | undefined = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error("Missing Supabase URL or Anon Key environment variables.");
+      return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Check user session
     const { data: { user } } = await supabase.auth.getUser();
