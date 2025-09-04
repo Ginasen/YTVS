@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, UserPlus, Mail, Lock, Phone, CheckCircle, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { createSupabaseClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
@@ -77,6 +77,13 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
+
+    const supabase = createSupabaseClient()
+    if (!supabase) {
+      setLoading(false)
+      setError("Ошибка инициализации клиента Supabase.")
+      return
+    }
 
     const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
