@@ -1,30 +1,70 @@
 # System Patterns: YouTube Summarizer
 
-## System Architecture
-- **Frontend**: Next.js (React) for user interface.
-- **Backend**: Next.js API routes for server-side logic (e.g., summarization, Supabase integration).
-- **Database/Auth**: Supabase for user authentication and data storage.
-- **AI/Summarization**: External AI service (e.g., OpenAI, custom model) integrated via API.
+## Environment Variables Configuration
 
-## Key Technical Decisions
-- Using Next.js for a full-stack approach (frontend and backend API routes).
-- Supabase for managed authentication and database, reducing boilerplate.
-- Modular component design for reusability and maintainability.
+### Required Environment Variables
 
-## Design Patterns in Use
-- **Component-based architecture**: React components for UI.
-- **API Routes**: For handling server-side logic and external API calls.
-- **Client-Server interaction**: Fetching data from API routes, submitting forms.
+1. **NEXT_PUBLIC_SUPABASE_URL** - Supabase project URL
+2. **NEXT_PUBLIC_SUPABASE_ANON_KEY** - Supabase anonymous API key (client-side)
+3. **SUPABASE_SERVICE_ROLE_KEY** - Supabase service role key (server-side, admin operations)
+4. **RAPIDAPI_KEY** - API key for YouTube transcript service
+5. **GEMINI_API_KEY** - Google Gemini API key for AI summarization
+6. **GOOGLE_CLOUD_PROJECT** - Google Cloud project ID
 
-## Component Relationships
-- `app/page.tsx`: Main landing page, likely contains the summarization input.
-- `app/login/page.tsx`, `app/register/page.tsx`: Authentication pages.
-- `app/api/summarize/route.ts`: API endpoint for video summarization.
-- `app/api/delete-user/route.ts`: API endpoint for user deletion.
-- `lib/supabase.ts`: Supabase client initialization and utility functions.
-- `components/ui/*`: Shadcn UI components for consistent styling and functionality.
+### Environment Variable Management
 
-## Critical Implementation Paths
-- User authentication flow (registration, login, session management).
-- YouTube URL submission and summarization process.
-- Secure handling of API keys and sensitive information (e.g., `.env.local`).
+- All environment variables are stored in `.env.local`
+- Variables prefixed with `NEXT_PUBLIC_` are available client-side
+- Server-side variables should NOT be prefixed with `NEXT_PUBLIC_`
+- Never commit `.env.local` to version control
+
+## API Integration Patterns
+
+### YouTube Transcript Retrieval
+- Uses RapidAPI service to fetch YouTube video transcripts
+- API endpoint: `youtube-captions-transcript-subtitles-video-combiner.p.rapidapi.com`
+
+### AI Summarization
+- Primary: Google Gemini API (`@google/generative-ai`)
+- Model: `gemini-1.5-flash` for fast summarization
+
+### Supabase Integration
+- Client-side: Uses anonymous key for user authentication
+- Server-side: Uses service role key for admin operations
+- Singleton pattern for Supabase client initialization
+
+## Security Considerations
+
+1. **API Key Protection**
+   - Never expose server-side keys to client-side code
+   - Use environment variables for all sensitive keys
+   - Rotate keys regularly
+
+2. **Error Handling**
+   - Never expose raw API keys in error messages
+   - Mask sensitive data in logs
+   - Handle API rate limiting gracefully
+
+3. **Authentication**
+   - Use Supabase built-in authentication
+   - Validate user sessions server-side
+   - Implement proper logout functionality
+
+## Testing Patterns
+
+### Environment Variable Testing
+- `/api/test-env` endpoint verifies all environment variables
+- Logs masked versions of keys for verification
+- Returns status of each required variable
+
+### API Integration Testing
+- Test YouTube transcript retrieval
+- Test AI summarization with sample text
+- Test Supabase client connectivity
+- Test user authentication flows
+
+## Future Enhancements
+
+### Enhanced Error Handling
+- More detailed error categorization
+- User-friendly error messages
