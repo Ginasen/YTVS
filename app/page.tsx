@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Youtube, Sparkles, CheckCircle, AlertCircle, Zap, Stars, UserPlus, LogIn, LogOut } from "lucide-react" // Add LogIn and LogOut icons
+import { Loader2, Youtube, Sparkles, CheckCircle, AlertCircle, Zap, Stars, UserPlus, LogIn, LogOut, User } from "lucide-react" // Add LogIn, LogOut, and User icons
 
 type LoadingState = "idle" | "extracting" | "summarizing" | "complete" | "error"
 
@@ -163,13 +163,21 @@ export default function YouTubeSummarizer() {
           </p>
           <div className="flex justify-center gap-4 mb-8">
             {userEmail ? (
-              <Button
-                onClick={handleLogout}
-                className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
-              >
-                <LogOut className="h-5 w-5 mr-2" />
-                Выйти ({userEmail})
-              </Button>
+              <div className="flex gap-4">
+                <Link href="/profile">
+                  <Button className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-green-500 to-teal-500 hover:from-teal-500 hover:to-green-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
+                    <User className="h-5 w-5 mr-2" />
+                    Профиль
+                  </Button>
+                </Link>
+                <Button
+                  onClick={handleLogout}
+                  className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-red-500 to-orange-500 hover:from-orange-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg"
+                >
+                  <LogOut className="h-5 w-5 mr-2" />
+                  Выйти
+                </Button>
+              </div>
             ) : (
               <>
                 <Link href="/login">
