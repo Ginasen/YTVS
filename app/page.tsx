@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Youtube, Sparkles, CheckCircle, AlertCircle, Zap, Stars, UserPlus, LogIn, LogOut, User } from "lucide-react" // Add LogIn, LogOut, and User icons
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 type LoadingState = "idle" | "extracting" | "summarizing" | "complete" | "error"
 
 export default function YouTubeSummarizer() {
   const [url, setUrl] = useState("")
-  const [summary, setSummary] = useState<React.ReactNode>(null) // Change type to React.ReactNode
+  const [summary, setSummary] = useState<string>("") // Change back to string for markdown
   const [loadingState, setLoadingState] = useState<LoadingState>("idle")
   const [error, setError] = useState("")
   const [userEmail, setUserEmail] = useState<string | null>(null)
@@ -92,7 +94,7 @@ export default function YouTubeSummarizer() {
       }
 
       const data = await response.json()
-      setSummary(formatSummary(data.summary)) // Format the summary
+      setSummary(data.summary) // Set the raw markdown summary
       setLoadingState("complete")
 
       if (userEmail && !isUnlimitedUser) {
@@ -106,14 +108,7 @@ export default function YouTubeSummarizer() {
     }
   }
 
-  const formatSummary = (text: string) => {
-    // Split by double newlines to create paragraphs
-    return text.split(/\n\s*\n/).map((paragraph, index) => (
-      <p key={index} className="mb-4 last:mb-0">
-        {paragraph}
-      </p>
-    ))
-  }
+
 
   const getLoadingMessage = () => {
     switch (loadingState) {
@@ -295,8 +290,25 @@ export default function YouTubeSummarizer() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-lg max-w-none text-foreground/90 leading-relaxed text-lg font-medium">
-                {summary}
+              <div className="prose prose-lg prose-invert max-w-none text-foreground/90 leading-relaxed">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ node, ...props }) => <h1 className="text-3xl font-bold mb-4 mt-6 text-white" {...props} />,
+                    h2: ({ node, ...props }) => <h2 className="text-2xl font-bold mb-3 mt-5 text-white" {...props} />,
+                    h3: ({ node, ...props }) => <h3 className="text-xl font-semibold mb-2 mt-4 text-white" {...props} />,
+                    p: ({ node, ...props }) => <p className="mb-4 text-lg leading-relaxed text-white" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc mb-4 space-y-2 ml-6" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal mb-4 space-y-2 ml-6" {...props} />,
+                    li: ({ node, ...props }) => <li className="text-lg leading-relaxed text-white ml-2" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-bold text-white" {...props} />,
+                    em: ({ node, ...props }) => <em className="italic text-white/90" {...props} />,
+                    code: ({ node, ...props }) => <code className="bg-muted px-2 py-1 rounded text-accent font-mono text-sm" {...props} />,
+                    blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary pl-4 italic my-4 text-white/80" {...props} />,
+                  }}
+                >
+                  {summary}
+                </ReactMarkdown>
               </div>
             </CardContent>
           </Card>

@@ -90,9 +90,37 @@ async function generateSummary(transcript: string): Promise<string> {
   console.log("Transcript:", transcript);
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     console.log("Gemini Model:", model);
-    const prompt = `Предоставь краткое изложение следующей транскрипции видео с YouTube:\n\n${transcript}`;
+    const prompt = `Создай структурированное краткое изложение следующей транскрипции видео с YouTube. 
+
+Используй следующий формат в Markdown:
+
+## Основная тема
+
+[Краткое описание основной темы видео]
+
+## Ключевые моменты
+
+- Первый важный момент
+- Второй важный момент
+- Третий важный момент
+
+## Детали
+
+[Подробное описание с важными деталями]
+
+### Дополнительные подзаголовки
+
+[Если нужно, добавь подразделы]
+
+## Выводы
+
+[Основные выводы и заключение]
+
+Транскрипция:
+
+${transcript}`;
     const result = await model.generateContent(prompt);
     console.log("Gemini Result:", result);
     const response = await result.response;
